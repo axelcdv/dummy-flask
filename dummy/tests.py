@@ -25,13 +25,19 @@ class TestUserViews(unittest.TestCase):
 
     def test_user_detail(self):
         with app.test_request_context():
-        # with app.app_context():
+            # Make sure requesting an unknown user returns a 404
             response = self.client.get('/users/123/')
             assert response.status_code == 404
-            user = UserFactory()
-            # db.session.commit()
-            response = self.client.get('/users/{}/'.format(user.id))
-            assert response.status_code == 200
 
-if __name__ == '__main__':
-    unittest.main()
+            # Create a user
+            user = UserFactory()
+            db.session.commit()
+            response = self.client.get('/users/{}/'.format(user.id))
+            assert response.status_code == 200 # This works since the write was committed
+
+            # Create another user
+            uncommitted_user = UserFactory()
+            assert uncommitted_user in db.session
+            response = self.client.get('/users/{}/'.format(uncommitted_user.id))
+            assert response.status_code == 200 # This doesn't work, the session wasn't reused
+
