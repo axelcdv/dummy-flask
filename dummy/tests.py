@@ -35,7 +35,9 @@ class TestUserViews(unittest.TestCase):
             response = self.client.get('/users/{}/'.format(user.id))
             assert response.status_code == 200 # This works since the write was committed
 
-            # Create another user
+    def test_user_uncommitted(self):
+        with app.test_request_context():
+            # Create a user
             uncommitted_user = UserFactory()
             assert uncommitted_user in db.session
             response = self.client.get('/users/{}/'.format(uncommitted_user.id))
